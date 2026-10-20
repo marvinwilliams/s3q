@@ -39,12 +39,12 @@ constexpr TargetT num_cast(SourceT input) {
     return output;
 }
 
-template <class C>
-constexpr auto ssize(const C &c) {
-    using R = std::common_type_t<std::ptrdiff_t,
-                                 std::make_signed_t<decltype(c.size())>>;
-    return num_cast<R>(c.size());
-}
+// template <class C>
+// constexpr auto ssize(const C &c) {
+//     using R = std::common_type_t<std::ptrdiff_t,
+//                                  std::make_signed_t<decltype(c.size())>>;
+//     return num_cast<R>(c.size());
+// }
 
 /** Calculates ⌊log2 n⌋ */
 inline constexpr int log2_floor(unsigned long n) {

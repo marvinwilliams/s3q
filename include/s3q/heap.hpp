@@ -53,7 +53,7 @@ public:
     template <class Rng>
     static void push(Rng &&r) {
         assert(hasSentinel(r));
-        bubbleUpLastFrom(r, ssize(r) - 1);
+        bubbleUpLastFrom(r, std::ssize(r) - 1);
     }
 
     // like ranges::pop_heap except that we require a sentinel at idx 0 and the
@@ -61,7 +61,7 @@ public:
     template <class Rng>
     static void pop(Rng &&r) {
         assert(hasSentinel(r));
-        const Index maxIdx = ssize(r) - 1;
+        const Index maxIdx = std::ssize(r) - 1;
         assert(maxIdx > 0);
         const auto data = ranges::begin(r);
 
@@ -80,7 +80,7 @@ public:
 private:
     template <class Rng>
     static bool hasSentinel(const Rng &r) {
-        assert(ssize(r) > 0);
+        assert(std::ssize(r) > 0);
         return Cfg::getKey(*ranges::cbegin(r)) == KeyRange::inf();
     }
 

@@ -64,7 +64,7 @@ public:
 
 private:
     static constexpr bool overflow(const Buffer &buf) {
-        return ssize(buf) >= Cfg::kBufBaseSize;
+        return std::ssize(buf) >= Cfg::kBufBaseSize;
     }
 
     Buffer &minBuf() { return min_bucket_.buf; }
@@ -72,7 +72,7 @@ private:
     void insertIntoMaxBuf(Item item) {
         max_buffer_.push_back(std::move(item));
 
-        if (ssize(max_buffer_) >= Cfg::kBufBaseSize) {
+        if (std::ssize(max_buffer_) >= Cfg::kBufBaseSize) {
             // Flush max-buffer
             backend_.insert(std::move(max_buffer_));
             max_buffer_.clear();
@@ -83,7 +83,7 @@ private:
         minBuf().push_back(std::move(item));
 
         // Flush eagerly, so we use the right splitter on next insert
-        if (ssize(minBuf()) > Cfg::kBufBaseSize) {
+        if (std::ssize(minBuf()) > Cfg::kBufBaseSize) {
             // remove heap sentinel
             auto last = std::prev(minBuf().end());
             minBuf()[0] = std::move(*last);
@@ -112,7 +112,7 @@ private:
             // max-buf as either belonging to the new min-bucket or not
             min_bucket_ = backend_.delMin();
             reclassifyMaxBuf();
-            if (ssize(minBuf()) > Cfg::kBufBaseSize) flushMinBuf();
+            if (std::ssize(minBuf()) > Cfg::kBufBaseSize) flushMinBuf();
         }
 
         Heap::make(minBuf());

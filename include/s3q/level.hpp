@@ -45,7 +45,7 @@ public:
         return ranges::accumulate(buckets_ | size_view, 0ul);
     }
 
-    BucketIdx degree() const { return ssize(buckets_); }
+    BucketIdx degree() const { return std::ssize(buckets_); }
 
     Bucket delMin() {
         assert(!buckets_.empty());
@@ -56,7 +56,7 @@ public:
 
         classifier_.invalidate();
 
-        assert(ssize(result.buf) <= kMaxBucketSize_);
+        assert(std::ssize(result.buf) <= kMaxBucketSize_);
         traceState("delMin:after");
         return result;
     }
@@ -64,9 +64,9 @@ public:
     template <class Rng>
     void insert(Rng &&items) {
         assert(degree() <= Cfg::kMaxDegree);
-        assert(2 * ssize(items) >= minBucketSize() / Cfg::kGrowthRate);
-        assert(2 * ssize(items) >= Cfg::kBufBaseSize / Cfg::kSplitFactor);
-        assert(ssize(items) <= 2 * kMaxBucketSize_);
+        assert(2 * std::ssize(items) >= minBucketSize() / Cfg::kGrowthRate);
+        assert(2 * std::ssize(items) >= Cfg::kBufBaseSize / Cfg::kSplitFactor);
+        assert(std::ssize(items) <= 2 * kMaxBucketSize_);
 
         SizeChecker sc{*this, size() + items.size()};
 
@@ -91,8 +91,8 @@ public:
 
     void insertMin(Bucket &&b) {
         assert(degree() <= Cfg::kMaxDegree);
-        assert(ssize(b.buf) >= kMaxBucketSize_);
-        assert(ssize(b.buf) <= 3 * kMaxBucketSize_);
+        assert(std::ssize(b.buf) >= kMaxBucketSize_);
+        assert(std::ssize(b.buf) <= 3 * kMaxBucketSize_);
 
         SizeChecker sc{*this, size() + b.buf.size()};
 
@@ -165,7 +165,7 @@ private:
 
     std::ptrdiff_t maxBufSize() const {
         assert(!buckets_.empty());
-        return ssize(buckets_.back().buf);
+        return std::ssize(buckets_.back().buf);
     }
 
     std::ptrdiff_t minBucketSize() const {
@@ -213,7 +213,7 @@ private:
             next_level.insert(std::move(max_buf));
             max_buf.clear();
         } else {
-            assert(ssize(max_buf) >= kMaxBucketSize_);
+            assert(std::ssize(max_buf) >= kMaxBucketSize_);
             const auto num_remaining = num_cast<std::size_t>(minBucketSize());
             next_level.insert(max_buf | rv::drop_exactly(num_remaining));
             max_buf.resize(num_remaining);
@@ -229,7 +229,7 @@ private:
         // ɑ-way split any overflowing buckets in range [begin, end-1)
         // PERF: this is quadratic in the worst case
         for (BucketIdx idx = begin; idx < end - 1; ++idx) {
-            if (ssize(bucket(idx).buf) <= kMaxBucketSize_) continue;
+            if (std::ssize(bucket(idx).buf) <= kMaxBucketSize_) continue;
 
             // split the overflowing bucket
             const auto split_end = splitAt(idx);
@@ -243,7 +243,7 @@ private:
         const auto kMaxSplitDegree = Cfg::kMaxDegree - Cfg::kSplitFactor + 1;
         const bool max_buf_splittable = is_last_ && end <= kMaxSplitDegree;
         if ((end < degree() || max_buf_splittable) &&
-            ssize(bucket(end - 1).buf) > kMaxBucketSize_) {
+            std::ssize(bucket(end - 1).buf) > kMaxBucketSize_) {
             // bucket(end-1) is not a max-buf so we split it too if it overflows
             end = splitAt(end - 1);
         }
@@ -297,18 +297,18 @@ private:
         auto buf = std::move(bucket(idx).buf);
         auto keys_view = ranges::transform_view(buf, Cfg::getKey);
         bucket(idx).buf.clear();
-        assert(minBucketSize() <= ssize(buf) / split_degree);
+        assert(minBucketSize() <= std::ssize(buf) / split_degree);
 
         // determine splitters and insert them together with empty buffers
         // the old splitter becomes the supremum of the last new bucket
         auto splitters = getSplitters(keys_view, split_degree);
-        auto num_new_buckets = ssize(splitters);
+        auto num_new_buckets = std::ssize(splitters);
         assert(num_new_buckets < split_degree);
         ranges::insert(buckets_, buckets_.begin() + idx, splitters);
         classifier_.invalidate();
 
         S3Q_TRACE << "event=split:splitters lvl=" << this->idx()
-                  << " idx=" << idx << " degree=" << ssize(splitters) + 1
+                  << " idx=" << idx << " degree=" << std::ssize(splitters) + 1
                   << "\n";
 
         // PERF: only use local classifier if split_degree ≪ degree()
@@ -320,7 +320,7 @@ private:
 
         // From right to left, join underflowing buckets onto their predecessors
         for (auto it = split_begin + num_new_buckets; it > split_begin; --it) {
-            if (2 * ssize(it->buf) >= minBucketSize()) continue;
+            if (2 * std::ssize(it->buf) >= minBucketSize()) continue;
             S3Q_TRACE << "event=split:repair lvl=" << this->idx()
                       << " idx=" << std::distance(split_begin, it) << "\n";
             auto prev = std::prev(it);
@@ -331,7 +331,7 @@ private:
         }
 
         // If first bucket underflows, join it onto its successor
-        if (2 * ssize(split_begin->buf) < minBucketSize()) {
+        if (2 * std::ssize(split_begin->buf) < minBucketSize()) {
             S3Q_TRACE << "event=split:repair lvl=" << this->idx() << " idx=0"
                       << "\n";
             assert(std::next(split_begin) < buckets_.end());

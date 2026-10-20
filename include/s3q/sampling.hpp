@@ -98,7 +98,7 @@ public:
     auto operator()(Rng &&keys, std::ptrdiff_t num_buckets) {
         const auto step = oversamplingFactor(keys.size());
         const auto sample_size = step * num_buckets - 1;
-        assert(sample_size <= ssize(keys));
+        assert(sample_size <= std::ssize(keys));
 
         using namespace ranges;
 

@@ -42,7 +42,7 @@ public:
         assert(Cfg::KeyRange::contains(*ranges::crbegin(sorted_keys)));
         assert(ranges::is_sorted(sorted_keys));
 
-        const auto num_splitters = ssize(sorted_keys);
+        const auto num_splitters = std::ssize(sorted_keys);
         num_buckets_ = num_splitters + 1;
 
         const auto log_buckets = log2_ceil(num_buckets_);
